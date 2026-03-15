@@ -134,6 +134,8 @@ print(account.balance)  # 1500
 Inheritance allows a class (child) to derive attributes and methods from another class (parent), promoting code reuse.
 
 ```python
+import math
+
 class Shape:
     def area(self) -> float:
         raise NotImplementedError
@@ -142,16 +144,13 @@ class Shape:
         raise NotImplementedError
 
 class Circle(Shape):
-    import math
     def __init__(self, radius: float) -> None:
         self.radius = radius
 
     def area(self) -> float:
-        import math
         return math.pi * self.radius ** 2
 
     def perimeter(self) -> float:
-        import math
         return 2 * math.pi * self.radius
 
 class Rectangle(Shape):
@@ -651,6 +650,9 @@ class HashMap(Generic[T]):
         self._size = 0
 
     def _hash(self, key) -> int:
+        # Python's built-in hash() uses a randomised seed per process
+        # (PYTHONHASHSEED).  Suitable for internal bucketing only —
+        # do NOT use for security-sensitive hashing.
         return hash(key) % self._capacity
 
     def put(self, key, value: T) -> None:
@@ -1899,7 +1901,7 @@ email_schema = Schema({
 ### 8.3 Metadata Management
 
 ```python
-from datetime import datetime
+from datetime import datetime, timezone
 from uuid import uuid4
 
 @dataclass
@@ -1913,7 +1915,7 @@ class DataAsset:
 
     def __post_init__(self):
         if self.created_at is None:
-            self.created_at = datetime.utcnow()
+            self.created_at = datetime.now(timezone.utc)
         if self.id is None:
             self.id = str(uuid4())
 

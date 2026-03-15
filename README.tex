@@ -110,9 +110,10 @@ This document provides a comprehensive, academically referenced guide to
 programming language.  All code examples target Python~3.11+.
 
 The treatment follows the curriculum of seminal textbooks
-\cite{cormen2022,sedgewick2011,knuth1997v1,goodrich2013},
+\cite{cormen2022,sedgewick2011,knuth1997v1,goodrich2013,skiena2020},
 and is enriched with findings from landmark research papers
 \cite{bloom1970,pugh1990,dijkstra1959,kruskal1956,tarjan1975}.
+Python-language specifics draw on \cite{vanrossum2009,lutz2013,ramalho2022}.
 
 % ============================================================
 \section{Object-Oriented Programming}
@@ -313,7 +314,7 @@ $h: \mathcal{U} \to \{0, 1, \ldots, m-1\}$.
 
 \begin{definition}[Load Factor]
 The \emph{load factor} of a hash table with $n$ stored items and $m$ buckets is
-$\alpha = n/m$.  Python's \texttt{dict} resizes when $\alpha > 2/3$.
+$\alpha = n/m$.  Python's \texttt{dict} resizes when $\alpha > 2/3$~\cite{knuth1998v2,goodrich2013}.
 \end{definition}
 
 \begin{figure}[h]
@@ -437,6 +438,8 @@ The AVL tree~\cite{cormen2022} maintains balance using four rotation cases
 
 A \emph{binary min-heap} satisfies: for every node $i$, $A[i] \leq A[\text{left}(i)]$
 and $A[i] \leq A[\text{right}(i)]$~\cite{cormen2022}.
+For a more efficient mergeable priority queue, Fibonacci heaps achieve
+amortised $O(1)$ decrease-key and $O(\log n)$ extract-min~\cite{fredman1987}.
 
 \begin{figure}[h]
 \centering
@@ -507,7 +510,7 @@ and $A[i] \leq A[\text{right}(i)]$~\cite{cormen2022}.
 \subsection{Segment Tree}
 
 A segment tree for range-sum queries on array $A[0..n-1]$
-stores partial sums in an implicit binary tree.
+stores partial sums in an implicit binary tree~\cite{knuth1998v3,cormen2022}.
 
 \begin{figure}[h]
 \centering
@@ -636,6 +639,10 @@ $\begin{pmatrix}
 
 \subsection{BFS and DFS}
 
+Depth-First Search (DFS) was formalised by Tarjan~\cite{tarjan1972}, who used it
+to compute strongly connected components in linear time.
+Breadth-First Search (BFS) underpins shortest-path algorithms on unweighted graphs~\cite{cormen2022}.
+
 \begin{algorithm}
 \caption{Breadth-First Search (BFS)~\cite{cormen2022}}
 \begin{algorithmic}[1]
@@ -685,6 +692,61 @@ The time complexity with a binary heap is $O((V+E)\log V)$.
 \EndProcedure
 \end{algorithmic}
 \end{algorithm}
+
+\subsection{Bellman-Ford Algorithm}
+
+Bellman-Ford handles graphs with negative edge weights and detects
+negative-weight cycles~\cite{bellman1958,cormen2022}.
+Its time complexity is $O(VE)$.
+
+\begin{algorithm}
+\caption{Bellman-Ford Shortest Path~\cite{bellman1958}}
+\begin{algorithmic}[1]
+\Procedure{BellmanFord}{$G, w, s$}
+  \For{each vertex $v \in V$}
+    \State $d[v] \leftarrow \infty$; $\pi[v] \leftarrow \textsc{nil}$
+  \EndFor
+  \State $d[s] \leftarrow 0$
+  \For{$i = 1$ \textbf{to} $|V|-1$}
+    \For{each edge $(u,v) \in E$}
+      \If{$d[u] + w(u,v) < d[v]$}
+        \State $d[v] \leftarrow d[u] + w(u,v)$
+        \State $\pi[v] \leftarrow u$
+      \EndIf
+    \EndFor
+  \EndFor
+  \For{each edge $(u,v) \in E$}  \Comment{negative-cycle check}
+    \If{$d[u] + w(u,v) < d[v]$}
+      \Return \textsc{false}  \Comment{negative-weight cycle exists}
+    \EndIf
+  \EndFor
+  \Return \textsc{true}
+\EndProcedure
+\end{algorithmic}
+\end{algorithm}
+
+\subsection{Floyd-Warshall Algorithm}
+
+Floyd-Warshall computes all-pairs shortest paths in $O(V^3)$
+using dynamic programming~\cite{floyd1962,cormen2022}.
+
+\begin{algorithm}
+\caption{Floyd-Warshall All-Pairs Shortest Paths~\cite{floyd1962}}
+\begin{algorithmic}[1]
+\Procedure{FloydWarshall}{$W$}  \Comment{$W$ is the $n\times n$ weight matrix}
+  \State $D \leftarrow W$
+  \For{$k = 1$ \textbf{to} $n$}
+    \For{$i = 1$ \textbf{to} $n$}
+      \For{$j = 1$ \textbf{to} $n$}
+        \State $D[i][j] \leftarrow \min\!\bigl(D[i][j],\; D[i][k] + D[k][j]\bigr)$
+      \EndFor
+    \EndFor
+  \EndFor
+  \Return $D$
+\EndProcedure
+\end{algorithmic}
+\end{algorithm}
+
 
 % ============================================================
 \section{Advanced and Modern Data Structures}
@@ -810,6 +872,21 @@ Insert, Delete, Successor, Predecessor, Minimum, and Maximum
 in $O(\log\log U)$ worst-case time and uses $O(U)$ space.
 \end{theorem}
 
+\subsection{Persistent Data Structures}
+
+A \emph{persistent} data structure preserves all previous versions after
+each update~\cite{okasaki1998}.  Path copying and fat-node techniques achieve
+$O(\log n)$ update with full persistence.  Okasaki~\cite{okasaki1998} shows
+that purely functional languages naturally yield persistent structures.
+
+\subsection{Suffix Array and LCP Array}
+
+A suffix array for string $S[0..n-1]$ is the sorted array of all suffix
+start indices.  Kasai et al.~\cite{kasai2001} compute the LCP (Longest
+Common Prefix) array in $O(n)$ time from a suffix array, enabling
+$O(n\log n)$ construction of the full suffix data structure.
+
+
 % ============================================================
 \section{Algorithms}
 % ============================================================
@@ -906,6 +983,43 @@ optimal solutions to its sub-problems~\cite{cormen2022}.
 \end{algorithmic}
 \end{algorithm}
 
+\subsection{Minimum Spanning Tree}
+
+Kruskal's algorithm~\cite{kruskal1956,cormen2022} greedily adds the cheapest
+edge that does not create a cycle, using a Disjoint Set Union structure~\cite{tarjan1975}
+to detect cycles in $O(E\log E)$ time.
+
+\subsection{String Matching Algorithms}
+
+\paragraph{Knuth-Morris-Pratt (KMP).}
+KMP~\cite{knuth1977kmp} preprocesses the pattern to build a failure function,
+achieving $O(n+m)$ exact-match search (pattern length $m$, text length $n$).
+
+\paragraph{Rabin-Karp.}
+Rabin-Karp~\cite{karp1987} uses rolling polynomial hashing to match the
+pattern in $O(n+m)$ expected time, making it suitable for multi-pattern search.
+
+\paragraph{Aho-Corasick Automaton.}
+The Aho-Corasick algorithm~\cite{aho1975} extends KMP to simultaneously search
+for a set of $k$ patterns in $O(n + \sum |p_i| + z)$ time, where $z$ is the
+total number of matches.
+
+\begin{table}[h]
+\centering
+\caption{String search algorithm complexities.}
+\begin{tabular}{llll}
+\toprule
+\textbf{Algorithm} & \textbf{Preprocessing} & \textbf{Search} & \textbf{Reference} \\
+\midrule
+Naive       & $O(1)$     & $O(nm)$      & --- \\
+KMP         & $O(m)$     & $O(n)$       & \cite{knuth1977kmp} \\
+Rabin-Karp  & $O(m)$     & $O(n+m)$ avg & \cite{karp1987} \\
+Aho-Corasick& $O(\sum|p_i|)$ & $O(n+z)$ & \cite{aho1975} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+
 % ============================================================
 \section{Data Management and Governance}
 % ============================================================
@@ -978,6 +1092,10 @@ optimal solutions to its sub-problems~\cite{cormen2022}.
 
 \subsection{Consistent Hashing in Distributed Systems}
 
+Consistent hashing was popularised by Amazon's Dynamo~\cite{decandia2007dynamo}
+to distribute keys across a dynamic set of nodes with minimal remapping when
+nodes join or leave the cluster.
+
 \begin{figure}[h]
 \centering
 \begin{tikzpicture}[scale=1.0]
@@ -1017,7 +1135,7 @@ Keys are assigned to the nearest node in clockwise order.}
 
 \begin{table}[h]
 \centering
-\caption{Python built-in data structures and their underlying implementations.}
+\caption{Python built-in data structures and their underlying implementations~\cite{vanrossum2009,lutz2013,ramalho2022}.}
 \begin{tabular}{lll}
 \toprule
 \textbf{Python Type} & \textbf{Underlying Structure} & \textbf{Key Operations} \\
@@ -1038,186 +1156,5 @@ Keys are assigned to the nearest node in clockwise order.}
 % ============================================================
 \clearpage
 \printbibliography[heading=bibintoc, title={References}]
-
-% ---- NOTE: save the block below as references.bib in the same directory ----
-%
-% @book{cormen2022,
-%   author    = {Cormen, Thomas H. and Leiserson, Charles E. and Rivest, Ronald L. and Stein, Clifford},
-%   title     = {Introduction to Algorithms},
-%   edition   = {4},
-%   publisher = {MIT Press},
-%   year      = {2022}
-% }
-% @book{sedgewick2011,
-%   author    = {Sedgewick, Robert and Wayne, Kevin},
-%   title     = {Algorithms},
-%   edition   = {4},
-%   publisher = {Addison-Wesley Professional},
-%   year      = {2011}
-% }
-% @book{knuth1997v1,
-%   author    = {Knuth, Donald E.},
-%   title     = {The Art of Computer Programming, Volume 1: Fundamental Algorithms},
-%   edition   = {3},
-%   publisher = {Addison-Wesley},
-%   year      = {1997}
-% }
-% @book{goodrich2013,
-%   author    = {Goodrich, Michael T. and Tamassia, Roberto and Goldwasser, Michael H.},
-%   title     = {Data Structures and Algorithms in Python},
-%   publisher = {Wiley},
-%   year      = {2013}
-% }
-% @book{gamma1994,
-%   author    = {Gamma, Erich and Helm, Richard and Johnson, Ralph and Vlissides, John},
-%   title     = {Design Patterns: Elements of Reusable Object-Oriented Software},
-%   publisher = {Addison-Wesley},
-%   year      = {1994}
-% }
-% @book{skiena2020,
-%   author    = {Skiena, Steven S.},
-%   title     = {The Algorithm Design Manual},
-%   edition   = {3},
-%   publisher = {Springer},
-%   year      = {2020}
-% }
-% @book{okasaki1998,
-%   author    = {Okasaki, Chris},
-%   title     = {Purely Functional Data Structures},
-%   publisher = {Cambridge University Press},
-%   year      = {1998}
-% }
-% @book{lutz2013,
-%   author    = {Lutz, Mark},
-%   title     = {Learning Python},
-%   edition   = {5},
-%   publisher = {O'Reilly Media},
-%   year      = {2013}
-% }
-% @book{ramalho2022,
-%   author    = {Ramalho, Luciano},
-%   title     = {Fluent Python},
-%   edition   = {2},
-%   publisher = {O'Reilly Media},
-%   year      = {2022}
-% }
-% @article{bloom1970,
-%   author    = {Bloom, Burton H.},
-%   title     = {Space/time trade-offs in hash coding with allowable errors},
-%   journal   = {Communications of the ACM},
-%   volume    = {13},
-%   number    = {7},
-%   pages     = {422--426},
-%   year      = {1970}
-% }
-% @article{pugh1990,
-%   author    = {Pugh, William},
-%   title     = {Skip lists: a probabilistic alternative to balanced trees},
-%   journal   = {Communications of the ACM},
-%   volume    = {33},
-%   number    = {6},
-%   pages     = {668--676},
-%   year      = {1990}
-% }
-% @article{dijkstra1959,
-%   author    = {Dijkstra, Edsger W.},
-%   title     = {A note on two problems in connexion with graphs},
-%   journal   = {Numerische Mathematik},
-%   volume    = {1},
-%   number    = {1},
-%   pages     = {269--271},
-%   year      = {1959}
-% }
-% @article{bellman1958,
-%   author    = {Bellman, Richard},
-%   title     = {On a routing problem},
-%   journal   = {Quarterly of Applied Mathematics},
-%   volume    = {16},
-%   number    = {1},
-%   pages     = {87--90},
-%   year      = {1958}
-% }
-% @article{floyd1962,
-%   author    = {Floyd, Robert W.},
-%   title     = {Algorithm 97: Shortest path},
-%   journal   = {Communications of the ACM},
-%   volume    = {5},
-%   number    = {6},
-%   pages     = {345},
-%   year      = {1962}
-% }
-% @article{kruskal1956,
-%   author    = {Kruskal, Joseph B.},
-%   title     = {On the shortest spanning subtree of a graph and the traveling salesman problem},
-%   journal   = {Proceedings of the American Mathematical Society},
-%   volume    = {7},
-%   number    = {1},
-%   pages     = {48--50},
-%   year      = {1956}
-% }
-% @article{tarjan1975,
-%   author    = {Tarjan, Robert E.},
-%   title     = {Efficiency of a good but not linear set union algorithm},
-%   journal   = {Journal of the ACM},
-%   volume    = {22},
-%   number    = {2},
-%   pages     = {215--225},
-%   year      = {1975}
-% }
-% @article{knuth1977kmp,
-%   author    = {Knuth, Donald E. and Morris, James H. and Pratt, Vaughan R.},
-%   title     = {Fast pattern matching in strings},
-%   journal   = {SIAM Journal on Computing},
-%   volume    = {6},
-%   number    = {2},
-%   pages     = {323--350},
-%   year      = {1977}
-% }
-% @article{karp1987,
-%   author    = {Karp, Richard M. and Rabin, Michael O.},
-%   title     = {Efficient randomized pattern-matching algorithms},
-%   journal   = {IBM Journal of Research and Development},
-%   volume    = {31},
-%   number    = {2},
-%   pages     = {249--260},
-%   year      = {1987}
-% }
-% @article{fredman1987,
-%   author    = {Fredman, Michael L. and Tarjan, Robert E.},
-%   title     = {Fibonacci heaps and their uses in improved network optimization algorithms},
-%   journal   = {Journal of the ACM},
-%   volume    = {34},
-%   number    = {3},
-%   pages     = {596--615},
-%   year      = {1987}
-% }
-% @article{vanembdeboas1977,
-%   author    = {van Emde Boas, Peter},
-%   title     = {Preserving order in a forest in less than logarithmic time and linear space},
-%   journal   = {Information Processing Letters},
-%   volume    = {6},
-%   number    = {3},
-%   pages     = {80--82},
-%   year      = {1977}
-% }
-% @inproceedings{kasai2001,
-%   author    = {Kasai, Toru and Lee, Gunho and Arimura, Hiroki and Arikawa, Setsuo and Park, Kunsoo},
-%   title     = {Linear-time longest-common-prefix computation in suffix arrays and its applications},
-%   booktitle = {Combinatorial Pattern Matching (CPM 2001)},
-%   series    = {Lecture Notes in Computer Science},
-%   volume    = {2089},
-%   pages     = {181--192},
-%   publisher = {Springer},
-%   year      = {2001}
-% }
-% @article{aho1975,
-%   author    = {Aho, Alfred V. and Corasick, Margaret J.},
-%   title     = {Efficient string matching: An aid to bibliographic search},
-%   journal   = {Communications of the ACM},
-%   volume    = {18},
-%   number    = {6},
-%   pages     = {333--340},
-%   year      = {1975}
-% }
 
 \end{document}
